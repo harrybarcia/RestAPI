@@ -1,6 +1,7 @@
 const express=require('express');
 const bodyParser=require('body-parser');
 const feedRoutes=require('./routes/feed');
+const authRoutes=require('./routes/auth');
 const cors=require('cors');
 const mongoose=require('mongoose');
 const { Result } = require('express-validator');
@@ -43,12 +44,14 @@ const fileStorage = multer.diskStorage({
 app.use(multer({storage:fileStorage,fileFilter:fileFilter}).single('image'));
 
 app.use('/feed',feedRoutes);
+app.use('/auth',authRoutes);
 
 app.use((error, req, res, next) => {
     console.log(error);
     const statusCode = error.statusCode || 500;
     const message = error.message || 'Something went wrong';
-    res.status(statusCode).json({ message: message });
+    const data=error.data;
+    res.status(statusCode).json({ message: message, data: data });
 })
 mongoose.connect(
     'mongodb+srv://admin:doudou@cluster0.iaepn.mongodb.net/messages'
