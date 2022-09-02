@@ -1,13 +1,16 @@
+const path=require('path');
+
 const express=require('express');
 const bodyParser=require('body-parser');
-const feedRoutes=require('./routes/feed');
-const authRoutes=require('./routes/auth');
 const cors=require('cors');
 const mongoose=require('mongoose');
-const { Result } = require('express-validator');
-const app=express();
-const path=require('path');
+
 const multer=require('multer');
+const feedRoutes=require('./routes/feed');
+const authRoutes=require('./routes/auth');
+
+const app=express();
+
 app.use(bodyParser.json());
 app.use('/images', express.static(path.join(__dirname, 'images')));
 app.use(cors());
