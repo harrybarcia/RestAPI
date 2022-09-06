@@ -59,10 +59,22 @@ app.use((error, req, res, next) => {
 mongoose.connect(
     'mongodb+srv://admin:doudou@cluster0.iaepn.mongodb.net/messages'
 
-).then(result=>{
-    app.listen(8080);
-}).catch(err=>{
-    console.log(err);       
+)  .then(result => {
+  
+  const server = app.listen(8080);
 
+  const socketio=require('socket.io')(server, {
+
+    cors: {
+        origin: '*',
+    }
 });
+
+
+  socketio.on('connection', socket => {
+    console.log('Client connected');
+  });
+})
+.catch(err => console.log(err));
+
 

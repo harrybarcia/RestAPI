@@ -2,12 +2,13 @@ const {validationResult}=require('express-validator');
 const Post=require('../models/post');
 const fs=require('fs');
 const path = require('path');
+
+// const io = require('../socket');
 const User = require('../models/user');
 exports.getPosts = async (req, res, next) => {
     const currentPage = req.query.page || 1;
     const perPage = 2;
     try {
-        console.log('heress');
       const totalItems = await Post.find().countDocuments();
       const posts = await Post.find()
         
@@ -26,48 +27,50 @@ exports.getPosts = async (req, res, next) => {
       next(err);
     }
   };
-
-exports.createPost= async (req, res, next) => {
-    const errors=validationResult(req);
-    if(!errors.isEmpty()){
-        const error=new Error('Validation failed, entered data is incorrect.');
-        error.statusCode=422;
-        throw error;
+  exports.createPost = async (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      const error = new Error('Validation failed, entered data is incorrect.');
+      error.statusCode = 422;
+      throw error;
     }
     if (!req.file) {
-        const error = new Error('No image provided.');
-        error.statusCode = 422;
-        throw error;
+      const error = new Error('No image provided.');
+      error.statusCode = 422;
+      throw error;
     }
     const imageUrl = req.file.path;
-    const title=req.body.title;
-    const content=req.body.content;
-    let creator;
-    const post=new Post({
-        title:title,
-        content:content,
-        imageUrl: imageUrl,
-        creator: req.userId,
+    const title = req.body.title;
+    const content = req.body.content;
+    const post = new Post({
+      title: title,
+      content: content,
+      imageUrl: imageUrl,
+      creator: req.userId
     });
-    try{
-    console.log ("in try");
-    await post.save();
-    const user=await User.findById(req.userId);
-    user.posts.push(post);
-    await user.save();
-    res.status(201).json({
-        message:'Post created successfully!',
-        post:post,
-        creator:{_id:user._id, name:user.name}
-    });
+    try {
+      await post.save();
+      const user = await User.findById(req.userId);
+      user.posts.push(post);
+      await user.save();
+    //   io.getIO().emit('posts', {
+    //     action: 'create',
+    //     post: { ...post._doc, creator: { _id: req.userId, name: user.name } }
+    //   });
+      res.status(201).json({
+        message: 'Post created successfully!',
+        post: post,
+        creator: { _id: user._id, name: user.name }
+      });
+    } catch (err) {
+      if (!err.statusCode) {
+        err.statusCode = 500;
+      }
+      next(err);
     }
-    catch(err){
-        if(!err.statusCode){
-            err.statusCode=500;
-        }
-        next(err);
-    }
-}
+  };
+  
+  
 exports.getPost=async (req, res, next) => {
     const postId=req.params.postId;
     try{
