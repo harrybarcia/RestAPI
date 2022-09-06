@@ -1,5 +1,5 @@
 import React, { Component, Fragment } from 'react';
-
+import openSocket from 'socket.io-client';
 import Post from '../../components/Feed/Post/Post';
 import Button from '../../components/Button/Button';
 import FeedEdit from '../../components/Feed/FeedEdit/FeedEdit';
@@ -8,7 +8,7 @@ import Paginator from '../../components/Paginator/Paginator';
 import Loader from '../../components/Loader/Loader';
 import ErrorHandler from '../../components/ErrorHandler/ErrorHandler';
 import './Feed.css';
-
+import cors from 'cors';
 class Feed extends Component {
   state = {
     isEditing: false,
@@ -26,8 +26,7 @@ class Feed extends Component {
       headers: {
         Authorization: 'Bearer ' + this.props.token
         }
-        }
-        )
+        })
       .then(res => {
         if (res.status !== 200) {
           throw new Error('Failed to fetch user status.');
@@ -40,7 +39,34 @@ class Feed extends Component {
       .catch(this.catchError);
 
     this.loadPosts();
+  
+    // const socket = openSocket('http://localhost:8080');
+    //   socket.on('posts', data => {
+    //     if (data.action === 'create') {
+    //       this.addPost(data.post);
+    //     } else if (data.action === 'update') {
+    //       this.updatePost(data.post);
+    //     } else if (data.action === 'delete') {
+    //       this.loadPosts();
+    //     }
+    //   });
   }
+
+addPost = post => {
+
+    this.setState(prevState => {
+      const updatedPosts = [...prevState.posts];
+      if (prevState.postPage === 1) {
+        updatedPosts.pop();
+        updatedPosts.unshift(post);
+      }
+      return {
+        posts: updatedPosts,
+        totalPosts: prevState.totalPosts + 1
+      };
+    });
+  };
+
 
   loadPosts = direction => {
     if (direction) {
@@ -129,7 +155,7 @@ class Feed extends Component {
     this.setState({
       editLoading: true
     });
-    // Set up data (with image!)
+    // Set up data (with imagfe!)
     const formData = new FormData();
   // the formdata will set the header to multipart/form-data
     formData.append('title', postData.title);
@@ -176,9 +202,7 @@ class Feed extends Component {
               p => p._id === prevState.editPost._id
             );
             updatedPosts[postIndex] = post;
-          } else if (prevState.posts.length < 2) {
-            updatedPosts = prevState.posts.concat(post);
-          }
+          } 
           return {
             posts: updatedPosts,
             isEditing: false,
