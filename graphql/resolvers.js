@@ -86,7 +86,7 @@ module.exports = {
         const post = new Post({
             title: args.postInput.title,
             content: args.postInput.content,
-            imageUrl: 'images/' + args.postInput.imageUrl,
+            imageUrl: args.postInput.imageUrl,
             creator: user
         });
             const createdPost = await post.save();
@@ -117,6 +117,19 @@ module.exports = {
         return {...p._doc,_id:p._id.toString(),createdAt:p.createdAt.toISOString(),updatedAt:p.updatedAt.toISOString()}
     }),totalPosts:totalPosts};
     },
-
+    post : async function ({id},req){
+        if(!req.isAuth){
+            const error=new Error('Not authenticated!');
+            error.code=401;
+            throw error;
+        }
+        const post=await Post.findById(id).populate('creator');
+        if(!post){
+            const error=new Error('No post found!');
+            error.code=404;
+            throw error;
+        }
+        return {...post._doc,_id:post._id.toString(),createdAt:post.createdAt.toISOString(),updatedAt:post.updatedAt.toISOString()};
+    }
 };
     

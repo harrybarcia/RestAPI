@@ -1,5 +1,5 @@
 const path=require('path');
-
+const fs = require('fs');
 const express=require('express');
 const bodyParser=require('body-parser');
 const cors=require('cors');
@@ -46,8 +46,28 @@ const fileStorage = multer.diskStorage({
 //     res.setHeader('Access-Control-Allow-Methods','GET, POST, PATCH, DELETE, OPTIONS');
 //     next();
 // });
-
+app.use(multer({storage:fileStorage,fileFilter:fileFilter}).single('image'));
 app.use(auth);
+const clearImage = filePath => {
+  filePath = path.join(__dirname, '..', filePath);
+  fs.unlink(filePath, err => console.log(err));
+}
+
+app.put('/post-image', (req, res, next) => {
+
+    if (!req.isAuth) {
+      throw new Error('Not authenticated!');
+    }
+    if (!req.file) {
+      return res.status(200).json({ message: 'No file provided!' });
+    }
+    // I delete the old image  
+    if (req.body.oldPath) {
+      clearImage(req.body.oldPath);
+    }
+    return res.status(201).json({ message: 'File stored.', filePath: req.file.path });
+  });
+
 app.use('/graphql', graphqlHTTP({
     schema:graphqlSchema,
     rootValue:graphqlResolver,
@@ -64,7 +84,6 @@ app.use('/graphql', graphqlHTTP({
 })
 );
 
-app.use(multer({storage:fileStorage,fileFilter:fileFilter}).single('image'));
 
 // app.use('/feed',feedRoutes);
 // app.use('/auth',authRoutes);
