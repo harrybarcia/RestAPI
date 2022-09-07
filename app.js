@@ -49,7 +49,7 @@ const fileStorage = multer.diskStorage({
 app.use(multer({storage:fileStorage,fileFilter:fileFilter}).single('image'));
 app.use(auth);
 const clearImage = filePath => {
-  filePath = path.join(__dirname, '..', filePath);
+  filePath = path.join(__dirname, '.', filePath);
   fs.unlink(filePath, err => console.log(err));
 }
 
